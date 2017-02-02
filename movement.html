@@ -1,0 +1,143 @@
+<!doctype html>
+<html>
+<style>
+.x{
+    position:absolute;
+}
+</style>
+<body>
+<svg id='sv' height="1000" width="1000">
+    <line id='ln' x1="00" y1="00" x2="00" y2="00" style="stroke:rgb(255,0,0);stroke-width:1" />
+</svg>
+<p id='coord'></p>
+<p id='speed'></p>
+<p id='acc'></p>
+<p id='pred'></p>
+<p id='li'></p>
+<button type='button' id='x' class='x' onclick='cls()'>x</button>
+<button type='button' id='bt1' class='x' onclick='cls();defcolor();'>button1</button>
+<button type='button' id='bt2' class='x' onclick='cls();defcolor();'>button2</button>
+<button type='button' id='bt3' class='x' onclick='cls();defcolor();'>button3</button>
+
+<script>
+function $(s){return document.getElementById(s)}
+function cls(){li={}}
+function defcolor(){
+    for(var i=1;i<4;i++){
+        $('bt'+i).style.color='black'
+    }
+}
+var x=y=lastx=lasty=lastxsp=lastysp=accx=accy=xsp=ysp = 0;
+var li={};
+var t=l=0;
+function coord(e){
+   x = e.clientX;
+   y = e.clientY;
+   $('coord').innerHTML = 'X: ' + x + ' Y: '+ y;
+}
+function speed(){
+    xsp = (x-lastx)*0.5;
+    ysp = (y-lasty)*0.5;
+    xsp = xsp>window.innerWidth?0:xsp // ??
+    ysp = ysp>window.innerHeight?0:ysp // ??
+    $('speed').innerHTML = 'X speed: '+xsp+' unit/s' + ' Y speed: ' + ysp + ' unit/s';
+    lastx=x;
+    lasty=y;
+}
+function acc(){
+    //accx=xsp-lastxsp;
+    accx = lastxsp
+    accy=ysp-lastysp;
+
+    $('acc').innerHTML='X acc: '+accx+' unit/s^2\n'+' Y acc: '+accy+' unit/s^2';
+    lastxsp = xsp;
+    lastyxp = ysp;
+}
+function movex(){
+    t = Math.floor(ysp/accy*ysp+y)
+    l = Math.floor(xsp/accx*xsp+x)
+    if (!(0<accy<window.innerHeight)){t=window.innerHeight}
+    if (!(0<accx<window.innerWidth)){l=window.innerWidth}
+    $('x').style.top = t+'px'
+    $('x').style.left = l+'px'
+    $('pred').innerHTML='X: '+$('x').style.left+' Y: '+$('x').style.top
+    for (var it=0;it<30;it++){
+        var el = document.elementFromPoint(l+it,t+it).id
+        var el2 = document.elementFromPoint(l-it,t-it).id
+        el = el.startsWith('bt')?el:''
+        el2 = el2.startsWith('bt')?el2:''
+        li[el]==undefined&&el!=''?li[el]=0:li[el]+=1
+        li[el2]==undefined&&el2!=''?li[el2]=0:li[el2]+=1
+    }
+    //approx(l,t)
+}
+function approx(a, b){
+    for(var i;i<20;i++){
+        var el = document.elementFromPoint(a+i, b+i).id
+        var el1 = document.elementFromPoint(a-i, b-i).id
+        el = el.startsWith('bt')?el:''
+        el2 = el2.startsWith('bt')?el2:''
+        li[el]==undefined&&el!=''?li[el]=0:li[el]+=1
+        li[el1]=undefined&&el!=''?li[el1]=0:li[el1]+=1
+        console.log(el+'  '+el1)
+    }
+}
+function newb(){
+    $('bt1').style.top = Math.floor(Math.random()*window.innerHeight)+'px'
+    $('bt1').style.left = Math.floor(Math.random()*window.innerWidth)+'px'
+    $('bt2').style.top = Math.floor(Math.random()*window.innerHeight)+'px'
+    $('bt2').style.left = Math.floor(Math.random()*window.innerWidth)+'px'
+    $('bt3').style.top = Math.floor(Math.random()*window.innerHeight)+'px'
+    $('bt3').style.left = Math.floor(Math.random()*window.innerWidth)+'px'
+}
+function updateli(){
+    var i=0
+    var thing
+    for(var a in li){
+        if(li[a]>i){
+            thing=a
+            i=li[a]
+        }
+        
+    }
+    $('li').innerHTML=i+''+thing
+    if (0<Math.abs(xsp)<5&&0<Math.abs(ysp)<5){
+        changec(thing,'red')
+    }
+}
+function draw_line(){
+   //ax= ax==0?x:ax
+   //ay= ay==0?y:ay
+    if (!isNaN(l)&&isFinite(l) && !isNaN(t)&&isFinite(t)){
+        console.log(l+t)
+        $('ln').setAttribute('x1',x)
+        $('ln').setAttribute('y1',y)
+        $('ln').setAttribute('x2',l)
+        $('ln').setAttribute('y2',t)
+    }
+}
+function changec(s,color){
+    if ($(s) != null){
+    $(s).style.color=color
+    }
+}
+document.onmousemove = function(e){
+    coord(e);
+    //speed();
+    acc();
+    movex();
+    draw_line();
+};
+setInterval(function(){
+        speed();
+        //acc();
+        updateli();
+    },50)
+setInterval(function(){
+        newb();
+        cls();
+        defcolor();
+    },5000)
+</script>
+</body>
+</html>
